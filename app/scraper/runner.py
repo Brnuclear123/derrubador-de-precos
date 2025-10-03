@@ -72,25 +72,49 @@ def apply_triggers(db: Session, product: Product, new_price: float):
 
 
 def scrape_once(db: Session, product: Product) -> bool:
-    domain = urlparse(product.url).netloc.replace("www.", "")
-    adapter = pick_adapter(domain)
-    html = fetch_html(product.url)
-    result = adapter.parse(html)
+    from datetime import datetime
+    
+    try:
+        domain = urlparse(product.url).netloc.replace("www.", "")
+        adapter = pick_adapter(domain)
+        html = fetch_html(product.url)
+        result = adapter.parse(html)
 
-    updated = False
-    if result.price is not None:
-        ph = PriceHistory(product_id=product.id, price=result.price)
-        db.add(ph)
-        product.current_price = result.price
-        updated = True
-    if result.title and not product.title:
-        product.title = result.title
-    if result.in_stock is not None:
-        product.in_stock = result.in_stock
+        updated = False
+        
+        # Sempre atualizar last_checked_at
+        product.last_checked_at = datetime.utcnow()
+        
+        # Atualizar preço se encontrado
+        if result.price is not None:
+            ph = PriceHistory(product_id=product.id, price=result.price)
+            db.add(ph)
+            product.current_price = result.price
+            updated = True
+            logger.info(f"Preço atualizado para produto {product.id}: R$ {result.price}")
+        else:
+            logger.warning(f"Preço não encontrado para produto {product.id} ({product.url})")
+            
+        # Atualizar título se encontrado e não existir
+        if result.title and not product.title:
+            product.title = result.title
+            logger.info(f"Título atualizado para produto {product.id}: {result.title}")
+            
+        # Atualizar status de estoque
+        if result.in_stock is not None:
+            product.in_stock = result.in_stock
 
-    db.commit()
+        db.commit()
 
-    if result.price is not None:
-        apply_triggers(db, product, result.price)
+        # Disparar triggers se preço foi encontrado
+        if result.price is not None:
+            apply_triggers(db, product, result.price)
 
-    return updated
+        return updated
+        
+    except Exception as e:
+        logger.error(f"Erro ao fazer scraping do produto {product.id}: {str(e)}")
+        # Ainda assim atualizar last_checked_at para evitar tentativas infinitas
+        product.last_checked_at = datetime.utcnow()
+        db.commit()
+        return False
