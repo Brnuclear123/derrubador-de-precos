@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Derrubador de Preços</title>
+  <link rel="stylesheet" href="popup-simple.css">
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h2>Derrubador de Preços</h2>
+      <p class="subtitle">Monitore preços automaticamente</p>
+    </div>
+    
+    <div class="form">
+      <div class="input-group">
+        <label for="url">URL do Produto</label>
+        <input type="url" id="url" placeholder="https://www.magazineluiza.com.br/produto..." required>
+      </div>
+      
+      <div class="input-row">
+        <div class="input-group">
+          <label for="target_price">Preço Alvo (R$)</label>
+          <input type="number" id="target_price" placeholder="1999.90" step="0.01" min="0">
+        </div>
+        
+        <div class="input-group">
+          <label for="drop_percent">Queda (%)</label>
+          <input type="number" id="drop_percent" placeholder="15" step="0.1" min="0" max="100">
+        </div>
+      </div>
+      
+      <button id="monitor" class="btn-primary">
+        Monitorar Produto
+      </button>
+    </div>
+    
+    <div id="status" class="status"></div>
+  </div>
+  
+  <script src="popup-simple.js"></script>
+</body>
+</html>

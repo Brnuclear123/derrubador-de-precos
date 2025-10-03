@@ -1,0 +1,16 @@
+fastapi
+uvicorn[standard]
+pydantic
+pydantic-settings
+SQLAlchemy
+psycopg2-binary
+alembic
+python-dotenv
+httpx
+beautifulsoup4
+lxml
+apscheduler
+pywebpush
+email-validator
+python-dateutil
+loguru
