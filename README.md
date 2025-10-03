@@ -12,7 +12,7 @@
 
 *Verifica automaticamente produtos em sites de e-commerce e notifica quando o valor cai*
 
-[🚀 Demo Online](https://seu-projeto.up.railway.app) • [📖 Documentação](./DEPLOY_RAILWAY.md) • [🔌 Extensão Chrome](./chrome-extension/)
+[🚀 Demo Online](https://derrubador-de-precos-production.up.railway.app/ui) • [📖 Documentação](./DEPLOY_RAILWAY.md) • [🔌 Extensão Chrome](./chrome-extension/)
 
 </div>
 
@@ -142,24 +142,35 @@ A extensão permite monitorar produtos diretamente do navegador:
 
 ---
 
-## 📊 Demonstração
+## ⚠️ Limitações Atuais
 
-### Interface Web
-![Interface Web](https://via.placeholder.com/800x400/4CAF50/white?text=Interface+Web+Profissional)
+Atualmente, o Derrubador de Preços roda perfeitamente em **ambiente local**.
 
-### Extensão Chrome
-![Extensão Chrome](https://via.placeholder.com/400x300/2196F3/white?text=Extensão+Chrome)
+No entanto, em ambiente de produção (Railway, Render, Heroku, etc.), alguns e-commerces utilizam sistemas de **anti-bot** (WAF, Cloudflare, Akamai, etc.), que podem retornar respostas `403 Forbidden` ou páginas sem conteúdo real.
 
-### API Swagger
-![API Swagger](https://via.placeholder.com/800x400/FF9800/white?text=API+Swagger+Docs)
+### 🔍 **Isso acontece porque:**
+
+- 🌍 **IPs de datacenter** (como Railway) são bloqueados por alguns sites
+- 🕵️‍♂️ **Falta de cabeçalhos completos** (User-Agent, Accept-Language, etc.)
+- ⚡ **Carregamento dinâmico em JavaScript** que não é interpretado por scrapers simples
+
+### 🌐 **Demo Online**
+
+👉 **[Derrubador de Preços - Railway](https://derrubador-de-precos-production.up.railway.app/ui)**
+
+⚠️ *Alguns produtos podem aparecer sem título ou preço devido às proteções anti-bot descritas acima. Rodando localmente, a aplicação funciona sem restrições.*
 
 ---
 
-## 🛣️ Roadmap Futuro
+## 🚀 Próximos Passos (Roadmap Técnico)
 
-- [ ] **Playwright** para páginas com JavaScript pesado
-- [ ] **Notificações Telegram/Discord**
-- [ ] **Gráficos interativos** com Chart.js
+- [ ] **Headers realistas** para requests (User-Agent dinâmico, Accept-Language etc.)
+- [ ] **Suporte a proxies rotativos** residenciais para evitar bloqueios
+- [ ] **Headless browsers** (Playwright/Selenium) para scraping avançado
+- [ ] **Worker em background** para atualizar preços periodicamente em produção
+- [ ] **Documentação de compatibilidade** - sites que funcionam vs. que bloqueiam por anti-bot
+- [ ] **Notificações Telegram/Discord** como alternativa ao email
+- [ ] **Gráficos interativos** com Chart.js para histórico
 - [ ] **Painel Admin** com estatísticas avançadas
 - [ ] **API Rate Limiting** e autenticação JWT
 - [ ] **Testes automatizados** com pytest
