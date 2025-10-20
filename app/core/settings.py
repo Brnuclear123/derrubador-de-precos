@@ -20,6 +20,14 @@ class Settings(BaseSettings):
     SMTP_PASS: str = ""
     SMTP_FROM: str = "Derrubador <alerts@derruba.dev>"
 
+    # Configurações de Proxy
+    PROXY_ENABLED: bool = Field(default=False)
+    PROXY_LIST: str = Field(default="")  # Lista de proxies separados por vírgula
+    PROXY_USERNAME: str = Field(default="")
+    PROXY_PASSWORD: str = Field(default="")
+    PROXY_ROTATION_INTERVAL: int = Field(default=300)  # 5 minutos em segundos
+    PROXY_MAX_RETRIES: int = Field(default=3)
+
     class Config:
         env_file = ".env"
         extra = "ignore"

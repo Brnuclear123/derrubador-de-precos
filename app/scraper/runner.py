@@ -4,6 +4,8 @@ from sqlalchemy.orm import Session
 from .adapters.magalu import MagaluAdapter
 from .adapters.americanas import AmericanasAdapter
 from .adapters.fallback import FallbackAdapter
+from .headers import header_manager
+from .proxy_manager import proxy_manager
 from ..models.product import Product
 from ..models.price_history import PriceHistory
 from ..models.watch import Watch
@@ -15,11 +17,6 @@ ADAPTERS = {
     "americanas.com.br": AmericanasAdapter(),
 }
 
-HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36",
-    "Accept-Language": "pt-BR,pt;q=0.9",
-}
-
 async_mode = False  # MVP síncrono
 
 
@@ -28,10 +25,64 @@ def pick_adapter(domain: str):
 
 
 def fetch_html(url: str) -> str:
-    with httpx.Client(headers=HEADERS, timeout=15.0, follow_redirects=True) as client:
-        resp = client.get(url)
-        resp.raise_for_status()
-        return resp.text
+    """Faz requisição HTTP com cabeçalhos realistas, proxies rotativos e retry logic"""
+    import time
+    from ..core.settings import settings
+    
+    domain = urlparse(url).netloc.replace("www.", "")
+    headers = header_manager.get_session_headers(domain)
+    
+    max_retries = settings.PROXY_MAX_RETRIES if proxy_manager.is_enabled() else 3
+    last_exception = None
+    
+    for attempt in range(max_retries):
+        try:
+            # Configuração do cliente HTTP
+            client_config = {
+                "headers": headers,
+                "timeout": 15.0,
+                "follow_redirects": True
+            }
+            
+            # Adiciona proxy se habilitado
+            current_proxy = None
+            if proxy_manager.is_enabled():
+                current_proxy = proxy_manager.get_proxy(force_rotation=(attempt > 0))
+                if current_proxy:
+                    client_config["proxies"] = current_proxy
+                    logger.info(f"Usando proxy para {domain} (tentativa {attempt + 1})")
+            
+            start_time = time.time()
+            
+            with httpx.Client(**client_config) as client:
+                resp = client.get(url)
+                resp.raise_for_status()
+                
+                # Marca proxy como bem-sucedido se usado
+                if current_proxy:
+                    response_time = time.time() - start_time
+                    proxy_manager.mark_proxy_success(current_proxy, response_time)
+                
+                logger.info(f"Requisição bem-sucedida para {domain} em {time.time() - start_time:.2f}s")
+                return resp.text
+                
+        except Exception as e:
+            last_exception = e
+            logger.warning(f"Tentativa {attempt + 1} falhou para {url}: {str(e)}")
+            
+            # Marca proxy como falho se usado
+            if current_proxy:
+                proxy_manager.mark_proxy_failed(current_proxy)
+            
+            # Aguarda antes da próxima tentativa
+            if attempt < max_retries - 1:
+                wait_time = (attempt + 1) * 2  # Backoff exponencial
+                logger.info(f"Aguardando {wait_time}s antes da próxima tentativa...")
+                time.sleep(wait_time)
+    
+    # Se chegou aqui, todas as tentativas falharam
+    logger.error(f"Todas as {max_retries} tentativas falharam para {url}")
+    raise last_exception or Exception("Falha desconhecida na requisição")
 
 
 def apply_triggers(db: Session, product: Product, new_price: float):

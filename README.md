@@ -30,6 +30,8 @@ Sistema desenvolvido como **portfólio técnico** para demonstrar domínio em de
 - 🌐 **Interface Web Profissional** integrada ao FastAPI
 - 🔌 **Extensão Chrome** para monitorar produtos sem sair do navegador
 - ⚡ **Deploy 24/7** no Railway com worker automático
+- 🎭 **Cabeçalhos Realistas** com rotação de User-Agents e headers completos
+- 🔄 **Proxies Rotativos** com suporte a proxies residenciais e retry inteligente
 
 ---
 
@@ -151,8 +153,14 @@ No entanto, em ambiente de produção (Railway, Render, Heroku, etc.), alguns e-
 ### 🔍 **Isso acontece porque:**
 
 - 🌍 **IPs de datacenter** (como Railway) são bloqueados por alguns sites
-- 🕵️‍♂️ **Falta de cabeçalhos completos** (User-Agent, Accept-Language, etc.)
 - ⚡ **Carregamento dinâmico em JavaScript** que não é interpretado por scrapers simples
+
+### ✅ **Soluções Implementadas:**
+
+- ✨ **Sistema de Cabeçalhos Realistas** - 12+ User-Agents rotativos, cabeçalhos completos (Accept-Language, sec-ch-ua, etc.)
+- 🔄 **Sistema de Proxies Rotativos** - Suporte a proxies residenciais com rotação automática e retry inteligente
+- 📊 **Monitoramento Avançado** - APIs para verificar status do sistema e performance dos proxies
+- 🎯 **Otimizações por Domínio** - Cabeçalhos específicos para cada site de e-commerce
 
 ### 🌐 **Demo Online**
 
@@ -164,8 +172,8 @@ No entanto, em ambiente de produção (Railway, Render, Heroku, etc.), alguns e-
 
 ## 🚀 Próximos Passos (Roadmap Técnico)
 
-- [ ] **Headers realistas** para requests (User-Agent dinâmico, Accept-Language etc.)
-- [ ] **Suporte a proxies rotativos** residenciais para evitar bloqueios
+- [x] **Headers realistas** para requests (User-Agent dinâmico, Accept-Language etc.) ✅
+- [x] **Suporte a proxies rotativos** residenciais para evitar bloqueios ✅
 - [ ] **Headless browsers** (Playwright/Selenium) para scraping avançado
 - [ ] **Worker em background** para atualizar preços periodicamente em produção
 - [ ] **Documentação de compatibilidade** - sites que funcionam vs. que bloqueiam por anti-bot
@@ -176,6 +184,78 @@ No entanto, em ambiente de produção (Railway, Render, Heroku, etc.), alguns e-
 - [ ] **Testes automatizados** com pytest
 - [ ] **Docker** para containerização
 - [ ] **CI/CD** com GitHub Actions
+
+---
+
+## 🎭 Sistema Avançado de Scraping
+
+### Cabeçalhos Realistas
+
+O sistema implementa cabeçalhos HTTP completos e realistas para evitar detecção:
+
+- **12+ User-Agents Rotativos**: Chrome, Firefox, Safari, Edge (versões atualizadas)
+- **Rotação Automática**: A cada 5 minutos ou sob demanda
+- **Cabeçalhos Completos**: Accept, Accept-Language, Accept-Encoding, DNT, Connection, sec-ch-ua
+- **Otimizações por Domínio**: Headers específicos para Magazine Luiza, Americanas, etc.
+- **Simulação de Navegação**: Referrer ocasional simulando chegada via Google/Bing
+
+### Proxies Rotativos
+
+Sistema completo de gerenciamento de proxies residenciais:
+
+- **Rotação Inteligente**: Automática ou em caso de falha
+- **Retry com Backoff**: Até 3 tentativas com proxies diferentes
+- **Monitoramento de Saúde**: Tracking de falhas e tempo de resposta
+- **Recuperação Automática**: Proxies falhados são reabilitados após cooldown
+- **Autenticação**: Suporte a username/password
+
+#### Configuração de Proxies
+
+Adicione no arquivo `.env`:
+
+```bash
+# Habilitar sistema de proxies
+PROXY_ENABLED=true
+
+# Lista de proxies (separados por vírgula)
+PROXY_LIST=proxy1.example.com:8080,proxy2.example.com:8080
+
+# Credenciais (opcional)
+PROXY_USERNAME=seu-usuario
+PROXY_PASSWORD=sua-senha
+
+# Configurações avançadas
+PROXY_ROTATION_INTERVAL=300  # 5 minutos
+PROXY_MAX_RETRIES=3
+```
+
+### Novos Endpoints de Monitoramento
+
+- **`GET /system/status`** - Status completo do sistema (proxies, headers)
+- **`POST /system/proxy/test`** - Testa todos os proxies configurados
+- **`POST /system/proxy/rotate`** - Força rotação para próximo proxy
+
+**Exemplo de resposta:**
+```json
+{
+  "proxy_system": {
+    "enabled": true,
+    "stats": {
+      "total_proxies": 3,
+      "active_proxies": 2,
+      "failed_proxies": 1,
+      "current_proxy": 2
+    }
+  },
+  "header_system": {
+    "enabled": true,
+    "user_agents_available": 12,
+    "languages_available": 5
+  }
+}
+```
+
+📖 **Documentação Completa:** [SCRAPING_IMPROVEMENTS.md](./SCRAPING_IMPROVEMENTS.md)
 
 ---
 
@@ -193,10 +273,11 @@ pytest --cov=app tests/
 
 ## 📈 Métricas do Projeto
 
-- **Linhas de código:** ~2.500+
-- **Endpoints API:** 8+
+- **Linhas de código:** ~3.000+
+- **Endpoints API:** 11+
 - **Adapters de scraping:** 3+
-- **Cobertura de testes:** 85%+
+- **User-Agents disponíveis:** 12+
+- **Sistema de proxies:** ✅ Implementado
 - **Tempo de resposta API:** <200ms
 - **Uptime em produção:** 99.9%
 
